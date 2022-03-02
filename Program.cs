@@ -11,6 +11,7 @@ using MovieRecommender;
 //Start ML Sequence
 MLContext mlContext = new MLContext();
 
+
 //Load the Training Data in a IDataView
 (IDataView trainingDataView, IDataView testDataView) = LoadData(mlContext);
 
@@ -184,7 +185,7 @@ void createRandomData()
 
 void readCsvData()
 {
-    var path = @"C:\Users\Cedric\source\repos\MovieRecommender\Data\movie-list.csv"; // Habeeb, "Dubai Media City, Dubai"
+    var path = @"Data\movie-list.csv"; // Habeeb, "Dubai Media City, Dubai"
     using (TextFieldParser csvParser = new TextFieldParser(path))
     {
         csvParser.CommentTokens = new string[] { "#" };

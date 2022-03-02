@@ -15,6 +15,8 @@ namespace MovieRecommender
         public static void getRatedMovies (user user, MLContext mlContext, ITransformer model)
         {
             var results = new List<int>();
+            var ratings = new List<int>();
+
 
             using (TextFieldParser csvParser = new TextFieldParser(@"C:\Users\Cedric\source\repos\MovieRecommender\Data\user-movie-rating.csv"))
             {
@@ -35,6 +37,7 @@ namespace MovieRecommender
                     {
                         //Result = MovieId
                         results.Add(Convert.ToInt32(fields[1]));
+                        ratings.Add(Convert.ToInt32(fields[2]));
                         
                     }
                 }
@@ -62,7 +65,7 @@ namespace MovieRecommender
                         temp = fields[0];
                         if (Convert.ToInt32(temp) == target)
                         {
-                            Console.WriteLine($"{fields[1]}");
+                            Console.WriteLine($"{fields[1]} with a rating of {ratings[i]}");
                             break;
 
                         }

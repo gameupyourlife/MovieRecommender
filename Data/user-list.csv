@@ -1,8 +1,6 @@
-userId,userName,password,timestamp
-0,admin,admin,00000
+userId,userName,userPassword,userTimestamp
 1,sdf,sadf,16.02.2022 11:44:40
 2,sdfgh,qwertzu,22.02.2022 13:57:58
 3,user 1,123,24.02.2022 12:23:17
 4,user2,123,24.02.2022 12:25:33
 5,Tom,124,24.02.2022 14:54:32
-6,user3,123,24.02.2022 15:32:30
