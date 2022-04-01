@@ -1,12 +1,13 @@
-Idee
+# Informatik Movie Recommender
+## Idee
 
 Als der ursprüngliche Plan mit einem Lüftercontroller auf Grund der Architektur von Windows ins Wasser fiel, entschied ich mich für eine Movie Recommender da ich darüber einen Artikel gelesen hatte und Lust auf so ein Projekt bekam.
 
-Ziel
+## Ziel
 
 Das klare Ziel meinerseits war es einen Prototypen in der Konsole mit C# zum laufen zu bekommen, welcher einem User Filme empfiehlt und den User Filme bewerten lassen kann, alles mit einem User Management System.
 
-Verlauf
+## Verlauf
 Um das Neuronale Netzwerk zu erstellen habe ich mich für die ML.NET Libary entschieden, da diese eine ausgezeichnete Dokumentation besitzt und einfach zu integrieren ist.
 Das MLM konnte ich dank der Dokumentation in kurzer Zeit erstellen und in einen lauffähigen Zustand bringen.
 Die Trainingsdaten habe ich mit Hilfe einer extra dafür eigens geschriebenen Funktion zufällig erstellen lassen. Diese sollten provisorisch für den Prototypen dienen, da dieser eher als proof of concept dienen soll anstelle einer voll funktionsfähigen und akkuraten Releasversion.
