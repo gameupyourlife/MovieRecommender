@@ -1,7 +1,9 @@
 Idee
+
 Als der ursprüngliche Plan mit einem Lüftercontroller auf Grund der Architektur von Windows ins Wasser fiel, entschied ich mich für eine Movie Recommender da ich darüber einen Artikel gelesen hatte und Lust auf so ein Projekt bekam.
 
 Ziel
+
 Das klare Ziel meinerseits war es einen Prototypen in der Konsole mit C# zum laufen zu bekommen, welcher einem User Filme empfiehlt und den User Filme bewerten lassen kann, alles mit einem User Management System.
 
 Verlauf
