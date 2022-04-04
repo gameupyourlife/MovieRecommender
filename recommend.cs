@@ -10,6 +10,7 @@ using System.IO;
 using CsvHelper;
 using Microsoft.VisualBasic.FileIO;
 using MovieRecommender;
+using Spectre.Console;
 
 
 namespace MovieRecommender
@@ -23,39 +24,63 @@ namespace MovieRecommender
             var csv = new StringBuilder();
 
             var userId = user.userID;
-            Console.WriteLine("Movie Name:");
-            string movieName = Console.ReadLine();
-            var movieId = getMovieId(movieName);
+            AnsiConsole.Write(new Rule("[orange1]Recommend Movie[/]").LeftAligned());
+
+            string movieName = AnsiConsole.Ask<string>("What's the [green]name[/] of the movie?");
+            var movieId = getMovieId(movieName.ToUpper());
             if (movieId == "ERROR")
             {
-                Console.WriteLine("Movie is not in DB or was written false.");
-                Console.WriteLine("Either try again by typing try or choose a other option.");
-                string inp = Console.ReadLine();
-                if (inp == "try" || inp == "t")
+                var inp = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Movie not found. What do you want to [green]do[/]?")
+                    .PageSize(10)
+                    .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
+                    .AddChoices(new[] {
+                        "Rate another movie or retry", "Do something else"
+                    }));
+
+                if (inp == "Rate another movie or retry")
                     inpRecommend(user, mlContext, model);
                 else
                     Interface.mainInterface(user, mlContext, model);
             }
-            Console.WriteLine("Rating (1-5):");
-            var rating = Console.ReadLine();
-            while (rating == "")
-            {
-                Console.WriteLine("Try Again");
-                rating = Console.ReadLine();
-            }
-            int movieRating = tryRating(rating);
-            if (movieRating > 5)
-                movieRating = 5;
-            if (movieRating < 1)
-                movieRating = 0;
+
+
+            
+            var movieRating = AnsiConsole.Prompt(
+                new TextPrompt<int>("How do you [green]rate[/] the movie?")
+                    .PromptStyle("green")
+                    .ValidationErrorMessage("[red]That's not a valid rating[/]")
+                    .Validate(rating =>
+                    {
+                        return rating switch
+                        {
+                            < 0 => ValidationResult.Error("[red]Rating has to be at least 0[/]"),
+                            > 5 => ValidationResult.Error("[red]Rating hast to be at max 5[/]"),
+                            _ => ValidationResult.Success(),
+                        };
+                    }));
 
             var newLine = string.Format("{0},{1},{2},{3}", userId, movieId, movieRating, DateTime.Now);
             csv.AppendLine(newLine);
             
 
-            File.AppendAllText(@"C:\Users\Cedric\source\repos\MovieRecommender\Data\user-movie-rating.csv", csv.ToString());
+            File.AppendAllText(@"Data\user-movie-rating.csv", csv.ToString());
 
-            Console.WriteLine("Sucessfuly Rated");
+            AnsiConsole.Progress()
+                .Start(ctx =>
+                {
+                    // Define tasks
+                    var task1 = ctx.AddTask("[green]Saving Entry[/]");
+                    var task2 = ctx.AddTask("[green]Recalculating MLM[/]");
+
+                    while (!ctx.IsFinished)
+                    {
+                        task1.Increment(3);
+                        task2.Increment(1.5);
+                        Thread.Sleep(50);
+                    }
+                });
 
             Interface.mainInterface(user, mlContext, model);
         }
@@ -70,23 +95,22 @@ namespace MovieRecommender
             }
             catch (Exception)
             {
-                Console.WriteLine("Error no number inputed. Retry rating");
+                AnsiConsole.WriteLine("Pleas write a number");
                 rating = Console.ReadLine();
-                tryRating(rating);
+                return tryRating(rating);
             }
-            return Convert.ToInt32(rating);
         }
 
         public static string getMovieId (string movieName)
         {
-            using (TextFieldParser csvParser = new TextFieldParser(@"C:\Users\Cedric\source\repos\MovieRecommender\Data\movie-list.csv"))
+            using (TextFieldParser csvParser = new TextFieldParser(@"Data\movie-list.csv"))
             {
                 csvParser.CommentTokens = new string[] { "#" };
                 csvParser.SetDelimiters(new string[] { $";" });
                 csvParser.HasFieldsEnclosedInQuotes = true;
 
                 // Skip the row with the column names
-                Console.WriteLine(csvParser.ReadLine());
+                csvParser.ReadLine();
 
                 
                 string results = "";
@@ -94,13 +118,11 @@ namespace MovieRecommender
                 while (!csvParser.EndOfData)
                 {
                     string[] fields = csvParser.ReadFields();
-                    //Console.WriteLine(fields);
                     results = fields[1];
-                    if (results == movieName)
+                    if (results.ToUpper() == movieName)
                     {
                         results = fields[0];
                         csvParser.Close();
-                        //Console.WriteLine("Results: " + results);
                         return results;
                     }
                 }
@@ -108,7 +130,6 @@ namespace MovieRecommender
 
                 csvParser.Close();
                 results = "ERROR";
-                Console.WriteLine("Results: " + results);
                 return results;
             }
         }

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
+using Spectre.Console;
 
 
-    public class MovieRating
+public class MovieRating
     {
         [LoadColumn(0)]
         public float userId;

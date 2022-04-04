@@ -6,14 +6,22 @@ using System.Text;
 using CsvHelper;
 using Microsoft.VisualBasic.FileIO;
 using MovieRecommender;
+using System.Runtime.InteropServices;
+using Spectre.Console;
+
+Console.Title = "Movie Recommender";
+
+
 
 // Main Structure
 //Start ML Sequence
 MLContext mlContext = new MLContext();
 
-
 //Load the Training Data in a IDataView
 (IDataView trainingDataView, IDataView testDataView) = LoadData(mlContext);
+
+
+
 
 //Erstellen und Trainieren des MLM
 ITransformer model = BuildAndTrainModel(mlContext, trainingDataView);
@@ -21,17 +29,20 @@ ITransformer model = BuildAndTrainModel(mlContext, trainingDataView);
 //Überprüfen des MLM anhand von Überprüfungsdaten
 EvaluateModel(mlContext, testDataView, model);
 
-//Testen des MLM anhand von Test Eingabedaten zur Vorhersage der Bewertung
-// UseModelForSinglePrediction(mlContext, model);
+    //Testen des MLM anhand von Test Eingabedaten zur Vorhersage der Bewertung
+    // UseModelForSinglePrediction(mlContext, model);
 
-//Abspecihern des MLM
-SaveModel(mlContext, trainingDataView.Schema, model);
+    //Abspecihern des MLM
+    SaveModel(mlContext, trainingDataView.Schema, model);
+
 
 //createRandomData();
+AnsiConsole.Clear();
 readCsvData();
 
 //Initialising the Interface the user interacts with
-Interface.InterfaceInit(mlContext, model);
+Interface.LoadInterface(mlContext, model);
+//Interface.InterfaceInit(mlContext, model);
 
 
 (IDataView training, IDataView test) LoadData(MLContext mlContext)
@@ -62,8 +73,7 @@ ITransformer BuildAndTrainModel(MLContext mlContext, IDataView trainingDataView)
     };
 
     var trainerEstimator = estimator.Append(mlContext.Recommendation().Trainers.MatrixFactorization(options));
-
-    Console.WriteLine("=============== Training the model ===============");
+    AnsiConsole.WriteLine("=============== Training the model ===============");
     ITransformer model = trainerEstimator.Fit(trainingDataView);
 
     return model;
@@ -73,20 +83,20 @@ ITransformer BuildAndTrainModel(MLContext mlContext, IDataView trainingDataView)
 
 void EvaluateModel(MLContext mlContext, IDataView testDataView, ITransformer model)
 {
-    Console.WriteLine("=============== Evaluating the model ===============");
+    AnsiConsole.WriteLine("=============== Evaluating the model ===============");
     var prediction = model.Transform(testDataView);
 
     var metrics = mlContext.Regression.Evaluate(prediction, labelColumnName: "Label", scoreColumnName: "Score");
 
-    Console.WriteLine("Root Mean Squared Error : " + metrics.RootMeanSquaredError.ToString());
-    Console.WriteLine("RSquared: " + metrics.RSquared.ToString());
+    AnsiConsole.WriteLine("Root Mean Squared Error : " + metrics.RootMeanSquaredError.ToString());
+    AnsiConsole.WriteLine("RSquared: " + metrics.RSquared.ToString());
 }
 
 
 
 void UseModelForSinglePrediction(MLContext mlContext, ITransformer model)
 {
-    Console.WriteLine("=============== Making a prediction ===============");
+    AnsiConsole.WriteLine("=============== Making a prediction ===============");
     var predictionEngine = mlContext.Model.CreatePredictionEngine<MovieRating, MovieRatingPrediction>(model);
     var recomendedMovies = new List<float>();
     var recomendedRating = new List<float>();
@@ -101,13 +111,13 @@ void UseModelForSinglePrediction(MLContext mlContext, ITransformer model)
 
         if (Math.Round(movieRatingPrediction.Score, 1) > 3.5)
         {
-            Console.WriteLine("Movie " + testInput.movieId + " is recommended for user " + testInput.userId);
+            AnsiConsole.WriteLine("Movie " + testInput.movieId + " is recommended for user " + testInput.userId);
             recomendedMovies.Add(testInput.movieId);
             recomendedRating.Add(movieRatingPrediction.Score);
         }
         else
         {
-            Console.WriteLine("-----Movie " + testInput.movieId + " is not recommended for user " + testInput.userId);
+            AnsiConsole.WriteLine("-----Movie " + testInput.movieId + " is not recommended for user " + testInput.userId);
         }
     }
 
@@ -130,7 +140,7 @@ void UseModelForSinglePrediction(MLContext mlContext, ITransformer model)
 
     for (int i = 0; i < 10; i++)
     {
-        Console.WriteLine("Movie " + recomendedMovies[index: i] + " is with a rating of " + recomendedRating[index: i] + " inside the Top 10 of User" + userId);
+        AnsiConsole.WriteLine("Movie " + recomendedMovies[index: i] + " is with a rating of " + recomendedRating[index: i] + " inside the Top 10 of User" + userId);
     }
 }
 
@@ -139,10 +149,11 @@ void SaveModel(MLContext mlContext, DataViewSchema trainingDataViewSchema, ITran
 {
     var modelPath = Path.Combine(Environment.CurrentDirectory, "Data", "MovieRecommenderModel.zip");
 
-    Console.WriteLine("=============== Saving the model to a file ===============");
+    AnsiConsole.WriteLine("=============== Saving the model to a file ===============");
     mlContext.Model.Save(model, trainingDataViewSchema, modelPath);
 }
 
+//Uses a String Builder to create and write random data in csv
 void createRandomData()
 {
     Random rnd = new Random();
@@ -150,39 +161,39 @@ void createRandomData()
 
     for (int i = 0; i < 10000; i++)
     {
-        //Console.WriteLine("userId:");
+        //AnsiConsole.WriteLine("userId:");
         var userId = $"{rnd.Next(10)}";
-        //Console.WriteLine("movieId:");
+        //AnsiConsole.WriteLine("movieId:");
         var movieId = $"{rnd.Next(10000)}";
-        //Console.WriteLine("Rating:");
+        //AnsiConsole.WriteLine("Rating:");
         var rating = $"{rnd.Next(1,5)}";
         var timestamp = DateTime.Now;
 
         //To avoid nulls while manaual entry
         //while (userId == "")
         //{
-        //    Console.WriteLine("userId:");
+        //    AnsiConsole.WriteLine("userId:");
         //    userId = Console.ReadLine();
         //}
         //while (movieId == "")
         //{
-        //    Console.WriteLine("movieId:");
+        //    AnsiConsole.WriteLine("movieId:");
         //    movieId = Console.ReadLine();
         //}
         //while (rating == "")
         //{
-        //    Console.WriteLine("rating:");
+        //    AnsiConsole.WriteLine("rating:");
         //    rating = Console.ReadLine();
         //}
         var newLine = string.Format("{0},{1},{2},{3}", userId, movieId, rating, timestamp);
         csv.AppendLine(newLine);
     }
 
-    Console.WriteLine("=============== Finished Creating Random Data ===============");
-    File.AppendAllText(@"C:\Users\Cedric\source\repos\MovieRecommender\Data\recommendation-ratings-user.csv", csv.ToString());
+    AnsiConsole.WriteLine("=============== Finished Creating Random Data ===============");
+    File.AppendAllText(@"Data\recommendation-ratings-user.csv", csv.ToString());
 }
 
-
+//Reads a csv via a textparser. I don't think this function is used but it is a example
 void readCsvData()
 {
     var path = @"Data\movie-list.csv"; // Habeeb, "Dubai Media City, Dubai"
@@ -204,6 +215,7 @@ void readCsvData()
             string[] fields = csvParser.ReadFields();
             //movieId,movieName,releaseDate,
             //string movieId = fields[0];
+            //Adds the current field into the list
             movieId.Add(fields[0]);
             movieName.Add(fields[1]);
             releaseDate.Add(fields[2]);
@@ -211,9 +223,9 @@ void readCsvData()
         }
         //for (int x = 0; x < movieId.Count; x++)
         //{
-        //    Console.WriteLine(movieId[x]);
-        //    Console.WriteLine(movieName[x]);
-        //    Console.WriteLine(releaseDate[x]);
+        //    AnsiConsole.WriteLine(movieId[x]);
+        //    AnsiConsole.WriteLine(movieName[x]);
+        //    AnsiConsole.WriteLine(releaseDate[x]);
         //}
         
 

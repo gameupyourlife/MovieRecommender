@@ -10,6 +10,8 @@ using System.IO;
 using CsvHelper;
 using Microsoft.VisualBasic.FileIO;
 using MovieRecommender;
+using Spectre.Console;
+
 
 namespace MovieRecommender
 {
@@ -61,7 +63,6 @@ namespace MovieRecommender
                 }
 
                 csvParser.Close();
-                Console.WriteLine("Results: " + results);
                 return results;
             }
 
@@ -70,7 +71,7 @@ namespace MovieRecommender
 
         public static string readCurrentUserID(string name)
         {
-            using (TextFieldParser csvParser = new TextFieldParser(@"C:\Users\Cedric\source\repos\MovieRecommender\Data\user-list.csv"))
+            using (TextFieldParser csvParser = new TextFieldParser(@"Data\user-list.csv"))
             {
                 csvParser.CommentTokens = new string[] { "#" };
                 csvParser.SetDelimiters(new string[] { $"," });
@@ -88,7 +89,6 @@ namespace MovieRecommender
                     {
                         results = fields[0];
                         csvParser.Close();
-                        Console.WriteLine("Results: " + results);
                         return results;
                     }
                 }
@@ -96,7 +96,6 @@ namespace MovieRecommender
 
                 csvParser.Close();
                 results = "error";
-                Console.WriteLine("Results: " + results);
                 return results;
             }
         }

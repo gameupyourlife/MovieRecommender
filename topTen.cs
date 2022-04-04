@@ -6,6 +6,7 @@ using System.Text;
 using CsvHelper;
 using Microsoft.VisualBasic.FileIO;
 using MovieRecommender;
+using Spectre.Console;
 
 
 namespace MovieRecommender
@@ -15,7 +16,8 @@ namespace MovieRecommender
         //Spits out the top ten recommended films for that user
         public static void outTopTen(user user, MLContext mlContext, ITransformer model)
         {
-            Console.ForegroundColor = ConsoleColor.Blue;
+            AnsiConsole.Write(new Rule("[orange1]Top 10[/]").LeftAligned());
+
 
             var predictionEngine = mlContext.Model.CreatePredictionEngine<MovieRating, MovieRatingPrediction>(model);
             var recomendedMovies = new List<float>();
@@ -28,12 +30,13 @@ namespace MovieRecommender
 
                 var movieRatingPrediction = predictionEngine.Predict(testInput);
 
-                if (Math.Round(movieRatingPrediction.Score, 1) > 3.5)
+                if (Math.Round(movieRatingPrediction.Score, 2) > 3.5)
                 {
                     recomendedMovies.Add(testInput.movieId);
                     recomendedRating.Add(movieRatingPrediction.Score);
                 }
             }
+
 
             for (int i = 0; i < recomendedMovies.Count; i++)
             {
@@ -52,19 +55,23 @@ namespace MovieRecommender
                 }
             }
 
+            var movieNames = new List<string>();
+
             if (recomendedMovies.Count > 0)
             {
-                using (TextFieldParser csvParser = new TextFieldParser(@"C:\Users\Cedric\source\repos\MovieRecommender\Data\movie-list.csv"))
-                {
-                    csvParser.CommentTokens = new string[] { "#" };
-                    csvParser.SetDelimiters(new string[] { $";" });
-                    csvParser.HasFieldsEnclosedInQuotes = true;
 
-                    // Skip the row with the column names
-                    csvParser.ReadLine();
-                    string temp;
-                    for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 10; i++)
+                {
+                    using (TextFieldParser csvParser = new TextFieldParser(@"Data\movie-list.csv"))
                     {
+                        csvParser.CommentTokens = new string[] { "#" };
+                        csvParser.SetDelimiters(new string[] { $";" });
+                        csvParser.HasFieldsEnclosedInQuotes = true;
+
+                        // Skip the row with the column names
+                        csvParser.ReadLine();
+                        string temp;
+
                         float target = recomendedMovies[i];
                         Convert.ToInt32(target);
 
@@ -75,17 +82,37 @@ namespace MovieRecommender
                             temp = fields[0];
                             if (Convert.ToInt32(temp) == target)
                             {
-                                Console.WriteLine("Movie " + fields[1] + " is with a rating of " + recomendedRating[index: i] + " inside the Top 10 of " + user.userName);
+                                movieNames.Add(fields[1]);
                                 break;
 
                             }
                         }
-                    }
+                        csvParser.Close();
 
-                    csvParser.Close();
+                    }
                 }
             }
-            Console.ForegroundColor = ConsoleColor.White;
+            var table = new Table();
+
+
+            AnsiConsole.Live(table)
+                .Start(ctx =>
+                {
+                    // Add some columns
+                    table.AddColumn(new TableColumn("Movie").Centered());
+                    table.AddColumn(new TableColumn("Rating").Centered());
+                    ctx.Refresh();
+                    Thread.Sleep(1000);
+
+                    // Add some rows
+                    for (int i = 0; i < movieNames.Count; i++)
+                    {
+                        table.AddRow($"{movieNames[i]}", $"{Math.Round( recomendedRating[i],1)}");
+                        ctx.Refresh();
+                        Thread.Sleep(100);
+                    }
+                });
+
             Interface.mainInterface(user, mlContext, model);
         }
     }
